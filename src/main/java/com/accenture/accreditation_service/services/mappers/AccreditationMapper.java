@@ -1,6 +1,7 @@
 package com.accenture.accreditation_service.services.mappers;
 
 import com.accenture.accreditation_service.client.dtos.SalePointDtoOutput;
+import com.accenture.accreditation_service.client.dtos.UserDtoIdUsernameEmail;
 import com.accenture.accreditation_service.dtos.AccreditationDtoInput;
 import com.accenture.accreditation_service.dtos.AccreditationDtoOutput;
 import com.accenture.accreditation_service.models.AccreditationEntity;
@@ -13,12 +14,15 @@ import java.util.stream.Collectors;
 @Component
 public class AccreditationMapper {
 
-    public AccreditationEntity toEntity(AccreditationDtoInput accreditationDtoInput, SalePointDtoOutput salePointDtoOutput) {
+    public AccreditationEntity toEntity(AccreditationDtoInput accreditationDtoInput, SalePointDtoOutput salePointDtoOutput, UserDtoIdUsernameEmail userDtoIdUsernameEmail) {
         AccreditationEntity accreditationEntity = new AccreditationEntity();
         accreditationEntity.setAmount(accreditationDtoInput.getAmount());
         accreditationEntity.setReceivedAt(LocalDateTime.now());
         accreditationEntity.setSalePointId(salePointDtoOutput.getSalePointId());
         accreditationEntity.setNameSalePoint(salePointDtoOutput.getName());
+        accreditationEntity.setUserId(userDtoIdUsernameEmail.getUserId());
+        accreditationEntity.setUsername(userDtoIdUsernameEmail.getUsername());
+        accreditationEntity.setEmail(userDtoIdUsernameEmail.getEmail());
 
         return accreditationEntity;
     }
@@ -29,7 +33,10 @@ public class AccreditationMapper {
                 accreditationEntity.getAmount(),
                 accreditationEntity.getReceivedAt(),
                 accreditationEntity.getSalePointId(),
-                accreditationEntity.getNameSalePoint()
+                accreditationEntity.getNameSalePoint(),
+                accreditationEntity.getUserId(),
+                accreditationEntity.getUsername(),
+                accreditationEntity.getEmail()
         );
     }
 
