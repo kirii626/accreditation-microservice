@@ -1,15 +1,19 @@
 package com.accenture.accreditation_service.services.implementations;
 
-import com.accenture.accreditation_service.client.SalePointClient;
 import com.accenture.accreditation_service.client.dtos.SalePointDtoOutput;
+import com.accenture.accreditation_service.client.dtos.UserDtoIdUsernameEmail;
 import com.accenture.accreditation_service.dtos.AccreditationDtoInput;
 import com.accenture.accreditation_service.dtos.AccreditationDtoOutput;
 import com.accenture.accreditation_service.models.AccreditationEntity;
 import com.accenture.accreditation_service.repositories.AccreditationRepository;
 import com.accenture.accreditation_service.services.AccreditationService;
-import com.accenture.accreditation_service.services.SalePointCacheService;
+import com.accenture.accreditation_service.services.SalePointService;
+import com.accenture.accreditation_service.services.UserService;
 import com.accenture.accreditation_service.services.mappers.AccreditationMapper;
+import com.accenture.accreditation_service.services.validations.ValidRoleType;
 import com.accenture.accreditation_service.utils.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -17,29 +21,28 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+@RequiredArgsConstructor
 @Service
 public class AccreditationServiceImpl implements AccreditationService {
 
     private final AccreditationMapper accreditationMapper;
     private final AccreditationRepository accreditationRepository;
-    private final SalePointCacheService salePointCacheService;
-
-    public AccreditationServiceImpl(AccreditationMapper accreditationMapper, AccreditationRepository accreditationRepository, SalePointCacheService salePointCacheService) {
-        this.accreditationMapper = accreditationMapper;
-        this.accreditationRepository = accreditationRepository;
-        this.salePointCacheService = salePointCacheService;
-    }
+    private final SalePointService salePointService;
+    private final UserService userService;
+    private final ValidRoleType validRoleType;
 
     @Override
     @CacheEvict(value = "accreditations", allEntries = true)
-    public ApiResponse<AccreditationDtoOutput> createAccreditation(AccreditationDtoInput accreditationDtoInput) {
-        SalePointDtoOutput salePointDtoOutput = salePointCacheService.getSalePointById(accreditationDtoInput.getSalePointId());
+    public ApiResponse<AccreditationDtoOutput> createAccreditation(HttpServletRequest httpServletRequest, AccreditationDtoInput accreditationDtoInput) {
+        validRoleType.validateUserRole(httpServletRequest);
+        UserDtoIdUsernameEmail userDtoIdUsernameEmail = userService.getUserById(accreditationDtoInput.getUserId());
+        SalePointDtoOutput salePointDtoOutput = salePointService.getSalePointById(accreditationDtoInput.getSalePointId());
 
         if (salePointDtoOutput == null) {
             throw new NoSuchElementException("Sale Point with id " + accreditationDtoInput.getSalePointId() + " not found.");
         }
 
-        AccreditationEntity accreditationEntity = accreditationMapper.toEntity(accreditationDtoInput, salePointDtoOutput);
+        AccreditationEntity accreditationEntity = accreditationMapper.toEntity(accreditationDtoInput, salePointDtoOutput, userDtoIdUsernameEmail);
         AccreditationEntity accreditationSaved = accreditationRepository.save(accreditationEntity);
 
         AccreditationDtoOutput accreditationDtoOutput = accreditationMapper.toDto(accreditationSaved);
@@ -54,7 +57,8 @@ public class AccreditationServiceImpl implements AccreditationService {
 
     @Override
     @Cacheable("accreditations")
-    public ApiResponse<List<AccreditationDtoOutput>> allAccreditations() {
+    public ApiResponse<List<AccreditationDtoOutput>> allAccreditations(HttpServletRequest httpServletRequest) {
+        validRoleType.validateAdminRole(httpServletRequest);
         List<AccreditationEntity> accreditationEntityList = accreditationRepository.findAll();
         List<AccreditationDtoOutput> accreditationDtoOutputList = accreditationMapper.toDtoOutputList(accreditationEntityList);
 
