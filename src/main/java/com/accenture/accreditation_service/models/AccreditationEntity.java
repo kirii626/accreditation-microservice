@@ -1,10 +1,15 @@
 package com.accenture.accreditation_service.models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Getter
+@ToString
 @Entity
 public class AccreditationEntity {
 
@@ -12,71 +17,44 @@ public class AccreditationEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long accreditationId;
 
+    @Setter
     @Column(nullable = false)
     private Float amount;
 
+    @Setter
     @Column(nullable = false)
     private LocalDateTime receivedAt;
 
+    @Setter
     @Column(nullable = false)
     private Long salePointId;
 
+    @Setter
     @Column(nullable = false)
     private String nameSalePoint;
+
+    @Setter
+    @Column(nullable = false)
+    private Long userId;
+
+    @Setter
+    @Column(nullable = false)
+    private String username;
+
+    @Setter
+    @Column(nullable = false)
+    private String email;
 
     public AccreditationEntity() {
     }
 
-    public AccreditationEntity(Float amount, LocalDateTime receivedAt, Long salePointId, String nameSalePoint) {
+    public AccreditationEntity(Float amount, LocalDateTime receivedAt, Long salePointId, String nameSalePoint, Long userId, String username, String email) {
         this.amount = amount;
         this.receivedAt = receivedAt;
         this.salePointId = salePointId;
         this.nameSalePoint = nameSalePoint;
-    }
-
-    public Long getAccreditationId() {
-        return accreditationId;
-    }
-
-    public Float getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Float amount) {
-        this.amount = amount;
-    }
-
-    public LocalDateTime getReceivedAt() {
-        return receivedAt;
-    }
-
-    public void setReceivedAt(LocalDateTime receivedAt) {
-        this.receivedAt = receivedAt;
-    }
-
-    public Long getSalePointId() {
-        return salePointId;
-    }
-
-    public void setSalePointId(Long salePointId) {
-        this.salePointId = salePointId;
-    }
-
-    public String getNameSalePoint() {
-        return nameSalePoint;
-    }
-
-    public void setNameSalePoint(String nameSalePoint) {
-        this.nameSalePoint = nameSalePoint;
-    }
-
-    @Override
-    public String toString() {
-        return "AccreditationEntity{" +
-                "accreditationId=" + accreditationId +
-                ", amount=" + amount +
-                ", salePointId=" + salePointId +
-                ", nameSalePoint='" + nameSalePoint + '\'' +
-                '}';
+        this.userId = userId;
+        this.username = username;
+        this.email = email;
     }
 }
