@@ -1,26 +1,24 @@
 package com.accenture.accreditation_service.dtos;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AccreditationDtoInput {
 
     private Float amount;
 
     private Long salePointId;
 
-    public AccreditationDtoInput() {
-    }
+    private Long userId;
 
-    public AccreditationDtoInput(Float amount, Long salePointId) {
-        this.amount = amount;
-        this.salePointId = salePointId;
-    }
+    private String username;
 
-    public Float getAmount() {
-        return amount;
-    }
+    private String email;
 
-    public Long getSalePointId() {
-        return salePointId;
-    }
 }

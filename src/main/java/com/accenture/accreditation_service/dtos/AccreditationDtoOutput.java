@@ -1,7 +1,14 @@
 package com.accenture.accreditation_service.dtos;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AccreditationDtoOutput {
 
     private Long accreditationId;
@@ -14,34 +21,10 @@ public class AccreditationDtoOutput {
 
     private String nameSalePoint;
 
-    public AccreditationDtoOutput() {
-    }
+    private Long userId;
 
-    public AccreditationDtoOutput(Long accreditationId, Float amount, LocalDateTime receivedAt, Long salePointId, String nameSalePoint) {
-        this.accreditationId = accreditationId;
-        this.amount = amount;
-        this.receivedAt = receivedAt;
-        this.salePointId = salePointId;
-        this.nameSalePoint = nameSalePoint;
-    }
+    private String username;
 
-    public Long getAccreditationId() {
-        return accreditationId;
-    }
+    private String email;
 
-    public Float getAmount() {
-        return amount;
-    }
-
-    public LocalDateTime getReceivedAt() {
-        return receivedAt;
-    }
-
-    public Long getSalePointId() {
-        return salePointId;
-    }
-
-    public String getNameSalePoint() {
-        return nameSalePoint;
-    }
 }
