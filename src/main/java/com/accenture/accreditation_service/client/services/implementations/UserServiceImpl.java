@@ -1,9 +1,8 @@
-package com.accenture.accreditation_service.services.implementations;
+package com.accenture.accreditation_service.client.services.implementations;
 
 import com.accenture.accreditation_service.client.UserClient;
 import com.accenture.accreditation_service.client.dtos.UserDtoIdUsernameEmail;
-import com.accenture.accreditation_service.dtos.AccreditationDtoInput;
-import com.accenture.accreditation_service.services.UserService;
+import com.accenture.accreditation_service.client.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
