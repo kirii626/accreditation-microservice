@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface AccreditationService {
 
-    public ApiResponse<AccreditationDtoOutput> createAccreditation(HttpServletRequest httpServletRequest, AccreditationDtoInput accreditationDtoInput);
+    public AccreditationDtoOutput createAccreditation(HttpServletRequest httpServletRequest, AccreditationDtoInput accreditationDtoInput);
 
-    public ApiResponse<List<AccreditationDtoOutput>> allAccreditations(HttpServletRequest httpServletRequest);
+    public List<AccreditationDtoOutput> allAccreditations(HttpServletRequest httpServletRequest);
 }

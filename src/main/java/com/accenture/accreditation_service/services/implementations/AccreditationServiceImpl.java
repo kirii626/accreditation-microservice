@@ -7,8 +7,8 @@ import com.accenture.accreditation_service.dtos.AccreditationDtoOutput;
 import com.accenture.accreditation_service.models.AccreditationEntity;
 import com.accenture.accreditation_service.repositories.AccreditationRepository;
 import com.accenture.accreditation_service.services.AccreditationService;
-import com.accenture.accreditation_service.services.SalePointService;
-import com.accenture.accreditation_service.services.UserService;
+import com.accenture.accreditation_service.client.services.SalePointService;
+import com.accenture.accreditation_service.client.services.UserService;
 import com.accenture.accreditation_service.services.mappers.AccreditationMapper;
 import com.accenture.accreditation_service.services.validations.ValidRoleType;
 import com.accenture.accreditation_service.utils.ApiResponse;
@@ -33,7 +33,7 @@ public class AccreditationServiceImpl implements AccreditationService {
 
     @Override
     @CacheEvict(value = "accreditations", allEntries = true)
-    public ApiResponse<AccreditationDtoOutput> createAccreditation(HttpServletRequest httpServletRequest, AccreditationDtoInput accreditationDtoInput) {
+    public AccreditationDtoOutput createAccreditation(HttpServletRequest httpServletRequest, AccreditationDtoInput accreditationDtoInput) {
         validRoleType.validateUserRole(httpServletRequest);
         UserDtoIdUsernameEmail userDtoIdUsernameEmail = userService.getUserById(accreditationDtoInput.getUserId());
         SalePointDtoOutput salePointDtoOutput = salePointService.getSalePointById(accreditationDtoInput.getSalePointId());
@@ -47,26 +47,16 @@ public class AccreditationServiceImpl implements AccreditationService {
 
         AccreditationDtoOutput accreditationDtoOutput = accreditationMapper.toDto(accreditationSaved);
 
-        ApiResponse response = new ApiResponse<>(
-                "Order Received",
-                accreditationDtoOutput
-        );
-
-        return response;
+        return accreditationDtoOutput;
     }
 
     @Override
     @Cacheable("accreditations")
-    public ApiResponse<List<AccreditationDtoOutput>> allAccreditations(HttpServletRequest httpServletRequest) {
+    public List<AccreditationDtoOutput> allAccreditations(HttpServletRequest httpServletRequest) {
         validRoleType.validateAdminRole(httpServletRequest);
         List<AccreditationEntity> accreditationEntityList = accreditationRepository.findAll();
         List<AccreditationDtoOutput> accreditationDtoOutputList = accreditationMapper.toDtoOutputList(accreditationEntityList);
 
-        ApiResponse response = new ApiResponse<>(
-                "List of all orders",
-                accreditationDtoOutputList
-        );
-
-        return response;
+        return accreditationDtoOutputList;
     }
 }

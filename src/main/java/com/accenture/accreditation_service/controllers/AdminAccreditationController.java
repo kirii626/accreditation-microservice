@@ -19,6 +19,12 @@ public class AdminAccreditationController {
 
     @GetMapping("/all")
     public ApiResponse<List<AccreditationDtoOutput>> getAllAccreditations(HttpServletRequest httpServletRequest) {
-        return accreditationService.allAccreditations(httpServletRequest);
+        List<AccreditationDtoOutput> accreditationDtoOutputList = accreditationService.allAccreditations(httpServletRequest);
+
+        ApiResponse<List<AccreditationDtoOutput>> response = new ApiResponse<>(
+                "All orders: ",
+                accreditationDtoOutputList
+        );
+        return response;
     }
 }
