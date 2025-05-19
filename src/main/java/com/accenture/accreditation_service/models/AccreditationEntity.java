@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class AccreditationEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long accreditationId;
 
     @Setter
