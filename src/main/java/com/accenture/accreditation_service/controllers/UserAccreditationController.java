@@ -1,11 +1,11 @@
 package com.accenture.accreditation_service.controllers;
 
-import com.accenture.accreditation_service.client.dtos.UserDtoIdUsernameEmail;
 import com.accenture.accreditation_service.dtos.AccreditationDtoInput;
 import com.accenture.accreditation_service.dtos.AccreditationDtoOutput;
 import com.accenture.accreditation_service.services.AccreditationService;
 import com.accenture.accreditation_service.utils.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,7 +20,13 @@ public class UserAccreditationController {
     private final AccreditationService accreditationService;
 
     @PostMapping("/create")
-    public ApiResponse<AccreditationDtoOutput> createAccreditation(HttpServletRequest httpServletRequest, @RequestBody AccreditationDtoInput accreditationDtoInput) {
-        return accreditationService.createAccreditation(httpServletRequest, accreditationDtoInput);
+    public ApiResponse<AccreditationDtoOutput> createAccreditation(HttpServletRequest httpServletRequest, @Valid @RequestBody AccreditationDtoInput accreditationDtoInput) {
+        AccreditationDtoOutput accreditationDtoOutput = accreditationService.createAccreditation(httpServletRequest, accreditationDtoInput);
+
+        ApiResponse<AccreditationDtoOutput> response = new ApiResponse<>(
+                "Order Received",
+                accreditationDtoOutput
+        );
+        return  response;
     }
 }
