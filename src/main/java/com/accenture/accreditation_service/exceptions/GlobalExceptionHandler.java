@@ -1,6 +1,5 @@
 package com.accenture.accreditation_service.exceptions;
 
-import com.accenture.accreditation_service.utils.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;

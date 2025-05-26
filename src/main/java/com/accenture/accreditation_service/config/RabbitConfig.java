@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
 
-    @Value("{accreditation.exchange}")
+    @Value("${accreditation.exchange}")
     private String exchange;
 
     @Value("${rabbitmq.routingkey.accreditation}")

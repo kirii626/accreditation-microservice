@@ -1,6 +1,5 @@
 package com.accenture.accreditation_service.controllers;
 
-import com.accenture.accreditation_service.dtos.AccreditationDtoInput;
 import com.accenture.accreditation_service.dtos.AccreditationDtoOutput;
 import com.accenture.accreditation_service.services.AccreditationService;
 import com.accenture.accreditation_service.utils.ApiResponse;
@@ -21,10 +20,9 @@ public class AdminAccreditationController {
     public ApiResponse<List<AccreditationDtoOutput>> getAllAccreditations(HttpServletRequest httpServletRequest) {
         List<AccreditationDtoOutput> accreditationDtoOutputList = accreditationService.allAccreditations(httpServletRequest);
 
-        ApiResponse<List<AccreditationDtoOutput>> response = new ApiResponse<>(
+        return new ApiResponse<>(
                 "All orders: ",
                 accreditationDtoOutputList
         );
-        return response;
     }
 }

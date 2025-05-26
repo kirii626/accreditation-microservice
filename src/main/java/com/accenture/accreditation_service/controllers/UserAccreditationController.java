@@ -23,10 +23,9 @@ public class UserAccreditationController {
     public ApiResponse<AccreditationDtoOutput> createAccreditation(HttpServletRequest httpServletRequest, @Valid @RequestBody AccreditationDtoInput accreditationDtoInput) {
         AccreditationDtoOutput accreditationDtoOutput = accreditationService.createAccreditation(httpServletRequest, accreditationDtoInput);
 
-        ApiResponse<AccreditationDtoOutput> response = new ApiResponse<>(
+        return new ApiResponse<>(
                 "Order Received",
                 accreditationDtoOutput
         );
-        return  response;
     }
 }

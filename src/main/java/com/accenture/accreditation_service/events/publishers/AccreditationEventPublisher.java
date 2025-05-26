@@ -12,7 +12,7 @@ public class AccreditationEventPublisher {
 
     private final RabbitTemplate rabbitTemplate;
 
-    @Value("{accreditation.exchange}")
+    @Value("${accreditation.exchange}")
     private String exchange;
 
     @Value("${rabbitmq.routingkey.accreditation}")
