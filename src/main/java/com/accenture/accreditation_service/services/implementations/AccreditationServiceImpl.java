@@ -5,8 +5,7 @@ import com.accenture.accreditation_service.client.dtos.UserDtoIdUsernameEmail;
 import com.accenture.accreditation_service.dtos.AccreditationDtoInput;
 import com.accenture.accreditation_service.dtos.AccreditationDtoOutput;
 import com.accenture.accreditation_service.events.publishers.AccreditationEventPublisher;
-import com.accenture.accreditation_service.exceptions.SalePointNotFoundException;
-import com.accenture.accreditation_service.exceptions.UserNotFoundException;
+import com.accenture.accreditation_service.exceptions.*;
 import com.accenture.accreditation_service.models.AccreditationEntity;
 import com.accenture.accreditation_service.repositories.AccreditationRepository;
 import com.accenture.accreditation_service.services.AccreditationService;
@@ -73,11 +72,12 @@ public class AccreditationServiceImpl implements AccreditationService {
 
             log.info("Accreditation created successfully: id={}", accreditationDtoOutput.getAccreditationId());
             return accreditationDtoOutput;
-        }catch (UserNotFoundException | SalePointNotFoundException ex) {
+        } catch (UserNotFoundException | SalePointNotFoundException | InvalidAuthorizationHeaderException |
+                 ForbiddenAccessException ex) {
             throw ex;
-        } catch (Exception ex) {
+        }  catch (Exception ex) {
             log.error("Unexpected error during accreditation creation", ex);
-            throw new RuntimeException("Internal error while creating accreditation", ex);
+            throw new InternalServerErrorException("Internal error while creating accreditation", ex);
         }
     }
 
@@ -95,10 +95,11 @@ public class AccreditationServiceImpl implements AccreditationService {
 
             log.info("Fetched {} accreditations", accreditationDtoOutputList.size());
             return accreditationDtoOutputList;
-
+        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Error fetching accreditations", ex);
-            throw new RuntimeException("Internal error fetching accreditations", ex);
+            throw new InternalServerErrorException("Internal error fetching accreditations", ex);
         }
     }
 }
