@@ -1,8 +1,10 @@
 package com.accenture.accreditation_service.config;
 
 import com.accenture.accreditation_service.client.dtos.SalePointDtoOutput;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,23 +20,21 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class RedisConfig {
 
     @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return mapper;
-    }
+    public RedisCacheConfiguration redisCacheConfiguration() {
+        ObjectMapper redisObjectMapper = new ObjectMapper();
+        redisObjectMapper.registerModule(new JavaTimeModule());
+        redisObjectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        redisObjectMapper.activateDefaultTyping(
+                LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                JsonTypeInfo.As.PROPERTY
+        );
 
-    @Bean
-    public RedisCacheConfiguration redisCacheConfiguration(ObjectMapper objectMapper) {
         GenericJackson2JsonRedisSerializer serializer =
-                new GenericJackson2JsonRedisSerializer(objectMapper);
+                new GenericJackson2JsonRedisSerializer(redisObjectMapper);
 
         return RedisCacheConfiguration.defaultCacheConfig()
-                .prefixCacheNameWith("accreditation::")
-                .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(serializer)
-                );
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer));
     }
 
     @Bean
