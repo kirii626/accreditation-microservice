@@ -10,13 +10,17 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Configuration
 public class RabbitConfig {
 
     @Value("${accreditation.exchange}")
-    private String exchange;
+    private String accreditationExchange;
 
     @Value("${rabbitmq.routingkey.accreditation}")
     private String accreditationCreatedRoutingKey;
@@ -25,13 +29,19 @@ public class RabbitConfig {
     private String accreditationQueue;
 
     @Bean
-    public TopicExchange topicExchange() {
-        return new TopicExchange(exchange);
+    @Primary
+    public TopicExchange accreditationTopicExchange() {
+        return new TopicExchange(accreditationExchange);
     }
 
     @Bean
     public Queue accreditationQueue() {
-        return new Queue(accreditationQueue);
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-dead-letter-exchange", "accreditation.dlx");
+        args.put("x-dead-letter-routing-key", "accreditation.dlq");
+        args.put("x-message-ttl", 20000);
+
+        return new Queue(accreditationQueue, true, false, false, args);
     }
 
     @Bean
@@ -52,5 +62,23 @@ public class RabbitConfig {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(jackson2JsonMessageConverter());
         return rabbitTemplate;
+    }
+
+    @Bean
+    public Queue deadLetterQueue() {
+        return new Queue("accreditation.dlq");
+    }
+
+    @Bean
+    public TopicExchange deadLetterExchange() {
+        return new TopicExchange("accreditation.dlx");
+    }
+
+    @Bean
+    public Binding deadLetterBinding() {
+        return BindingBuilder
+                .bind(deadLetterQueue())
+                .to(deadLetterExchange())
+                .with("accreditation.dlq");
     }
 }
