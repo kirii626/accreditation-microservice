@@ -57,7 +57,6 @@ class AccreditationMapperTest {
         entity.setEmail("admin@example.com");
 
         AccreditationDtoOutput dto = mapper.toDto(entity);
-        System.out.println(dto);
 
         assertEquals(200.0f, dto.getAmount());
         assertEquals(now, dto.getReceivedAt());

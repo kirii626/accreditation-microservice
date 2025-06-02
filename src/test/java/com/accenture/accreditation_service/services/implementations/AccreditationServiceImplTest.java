@@ -13,9 +13,6 @@ import com.accenture.accreditation_service.exceptions.UserNotFoundException;
 import com.accenture.accreditation_service.models.AccreditationEntity;
 import com.accenture.accreditation_service.repositories.AccreditationRepository;
 import com.accenture.accreditation_service.services.mappers.AccreditationMapper;
-import com.accenture.accreditation_service.services.validations.ValidRoleType;
-import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,7 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,86 +43,78 @@ class AccreditationServiceImplTest {
     private UserService userService;
 
     @Mock
-    private ValidRoleType validRoleType;
-
-    @Mock
     private AccreditationEventPublisher accreditationEventPublisher;
-
-    @Mock
-    private HttpServletRequest request;
 
     @InjectMocks
     private AccreditationServiceImpl accreditationService;
 
-    private AccreditationDtoInput dtoInput;
-    private SalePointDtoOutput salePointDto;
-    private UserDtoIdUsernameEmail userDto;
-    private AccreditationEntity entity;
-    private AccreditationDtoOutput dtoOutput;
+    private final Long userId = 1L;
+    private final Long salePointId = 2L;
 
-    @BeforeEach
-    void setup() {
-        dtoInput = new AccreditationDtoInput(1020F, 1L, 1L, "username", "email@example.com");
-        salePointDto = new SalePointDtoOutput(1L, "Point A");
-        userDto = new UserDtoIdUsernameEmail(1L, "username", "email@example.com");
-        entity = new AccreditationEntity();
-        dtoOutput = new AccreditationDtoOutput(1L, 1020F, LocalDateTime.now(), 1L, "Point A", 1L, "username", "email@example.com");
-    }
+    private final AccreditationDtoInput input = new AccreditationDtoInput(1050F, salePointId, userId, "user", "user@example.com");
+    private final UserDtoIdUsernameEmail userDto = new UserDtoIdUsernameEmail(userId, "user", "user@example.com");
+    private final SalePointDtoOutput salePointDto = new SalePointDtoOutput(salePointId, "Point A");
+    private final AccreditationEntity entity = new AccreditationEntity();
+    private final AccreditationEntity savedEntity = new AccreditationEntity();
+    private final AccreditationDtoOutput output = new AccreditationDtoOutput(10L, 1050F, LocalDateTime.now(), salePointDto.getSalePointId(), salePointDto.getName(), userDto.getUserId(), userDto.getUsername(), userDto.getEmail());
 
     @Test
     void createAccreditation_shouldReturnOutput_whenSuccess() {
-        doNothing().when(validRoleType).validateUserRole(request);
-        when(salePointService.getSalePointById(1L)).thenReturn(salePointDto);
-        when(userService.getUserById(1L)).thenReturn(userDto);
-        when(accreditationMapper.toEntity(dtoInput, salePointDto, userDto)).thenReturn(entity);
-        when(accreditationRepository.save(entity)).thenReturn(entity);
-        when(accreditationMapper.toDto(entity)).thenReturn(dtoOutput);
+        when(salePointService.getSalePointById(salePointId)).thenReturn(salePointDto);
+        when(userService.getUserById(userId)).thenReturn(userDto);
+        when(accreditationMapper.toEntity(input, salePointDto, userDto)).thenReturn(entity);
+        when(accreditationRepository.save(entity)).thenReturn(savedEntity);
+        when(accreditationMapper.toDto(savedEntity)).thenReturn(output);
 
-        AccreditationDtoOutput result = accreditationService.createAccreditation(request, dtoInput);
+        AccreditationDtoOutput result = accreditationService.createAccreditation(input);
 
-        assertEquals(dtoOutput.getAccreditationId(), result.getAccreditationId());
-        verify(accreditationEventPublisher).sendAccreditationCreatedNotification(dtoOutput);
+        assertEquals(output.getAccreditationId(), result.getAccreditationId());
+        verify(accreditationEventPublisher).sendAccreditationCreatedNotification(output);
     }
 
     @Test
-    void createAccreditation_shouldThrowUserNotFoundException() {
-        doNothing().when(validRoleType).validateUserRole(request);
-        when(salePointService.getSalePointById(1L)).thenReturn(salePointDto);
-        when(userService.getUserById(1L)).thenThrow(new UserNotFoundException(1L));
+    void createAccreditation_shouldThrowSalePointNotFound_whenSalePointMissing() {
+        when(salePointService.getSalePointById(salePointId)).thenThrow(new SalePointNotFoundException(salePointId));
 
-        assertThrows(UserNotFoundException.class, () -> accreditationService.createAccreditation(request, dtoInput));
+        assertThrows(SalePointNotFoundException.class, () -> accreditationService.createAccreditation(input));
     }
 
     @Test
-    void createAccreditation_shouldThrowSalePointNotFoundException() {
-        doNothing().when(validRoleType).validateUserRole(request);
-        when(salePointService.getSalePointById(1L)).thenThrow(new SalePointNotFoundException(1L));
+    void createAccreditation_shouldThrowUserNotFound_whenUserMissing() {
+        when(salePointService.getSalePointById(salePointId)).thenReturn(salePointDto);
+        when(userService.getUserById(userId)).thenThrow(new UserNotFoundException(userId));
 
-        assertThrows(SalePointNotFoundException.class, () -> accreditationService.createAccreditation(request, dtoInput));
+        assertThrows(UserNotFoundException.class, () -> accreditationService.createAccreditation(input));
     }
 
     @Test
-    void createAccreditation_shouldThrowRuntimeException_onUnexpectedError() {
-        doThrow(new RuntimeException()).when(validRoleType).validateUserRole(request);
+    void createAccreditation_shouldThrowInternalServerError_whenUnexpectedError() {
+        when(salePointService.getSalePointById(salePointId)).thenReturn(salePointDto);
+        when(userService.getUserById(userId)).thenReturn(userDto);
+        when(accreditationMapper.toEntity(any(), any(), any())).thenThrow(new RuntimeException("DB crash"));
 
-        assertThrows(InternalServerErrorException.class, () -> accreditationService.createAccreditation(request, dtoInput));
+        assertThrows(InternalServerErrorException.class, () -> accreditationService.createAccreditation(input));
     }
 
     @Test
     void allAccreditations_shouldReturnList_whenSuccess() {
-        doNothing().when(validRoleType).validateAdminRole(request);
-        when(accreditationRepository.findAll()).thenReturn(Collections.singletonList(entity));
-        when(accreditationMapper.toDtoOutputList(anyList())).thenReturn(Collections.singletonList(dtoOutput));
+        List<AccreditationEntity> entityList = List.of(entity);
+        List<AccreditationDtoOutput> dtoList = List.of(output);
 
-        List<AccreditationDtoOutput> result = accreditationService.allAccreditations(request);
+        when(accreditationRepository.findAll()).thenReturn(entityList);
+        when(accreditationMapper.toDtoOutputList(entityList)).thenReturn(dtoList);
+
+        ArrayList<AccreditationDtoOutput> result = accreditationService.allAccreditations();
 
         assertEquals(1, result.size());
+        assertEquals(output.getAccreditationId(), result.get(0).getAccreditationId());
     }
 
     @Test
-    void allAccreditations_shouldThrowRuntimeException_onError() {
-        doThrow(new RuntimeException()).when(validRoleType).validateAdminRole(request);
+    void allAccreditations_shouldThrowInternalServerError_whenUnexpectedError() {
+        when(accreditationRepository.findAll()).thenThrow(new RuntimeException("DB down"));
 
-        assertThrows(InternalServerErrorException.class, () -> accreditationService.allAccreditations(request));
+        assertThrows(InternalServerErrorException.class, () -> accreditationService.allAccreditations());
     }
+
 }
