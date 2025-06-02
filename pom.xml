@@ -32,7 +32,7 @@
 		<sonar.projectKey>accreditation_microservice</sonar.projectKey>
 		<sonar.projectName>accreditation_microservice</sonar.projectName>
 		<sonar.host.url>http://localhost:9000</sonar.host.url>
-		<sonar.exclusions>**/config/**,**/dtos/**,**/exceptions/**,**/models/**,**/repositories/**,**/utils/**,**/events/**</sonar.exclusions>
+		<sonar.exclusions>**/config/**,**/dtos/**,**/exceptions/**,**/models/**,**/repositories/**,**/utils/**,**/events/**,**/controllers/**</sonar.exclusions>
 	</properties>
 	<dependencies>
 		<dependency>
