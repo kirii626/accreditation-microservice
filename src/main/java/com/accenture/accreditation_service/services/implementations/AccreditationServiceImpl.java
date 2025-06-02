@@ -12,8 +12,6 @@ import com.accenture.accreditation_service.services.AccreditationService;
 import com.accenture.accreditation_service.client.services.SalePointService;
 import com.accenture.accreditation_service.client.services.UserService;
 import com.accenture.accreditation_service.services.mappers.AccreditationMapper;
-import com.accenture.accreditation_service.services.validations.ValidRoleType;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +19,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -32,17 +31,15 @@ public class AccreditationServiceImpl implements AccreditationService {
     private final AccreditationRepository accreditationRepository;
     private final SalePointService salePointService;
     private final UserService userService;
-    private final ValidRoleType validRoleType;
     private final AccreditationEventPublisher accreditationEventPublisher;
 
     @Override
     @CacheEvict(value = "accreditations", allEntries = true)
     @Transactional
-    public AccreditationDtoOutput createAccreditation(HttpServletRequest httpServletRequest, AccreditationDtoInput accreditationDtoInput) {
+    public AccreditationDtoOutput createAccreditation(AccreditationDtoInput accreditationDtoInput) {
         log.info("Creating accreditation for userId={}, salePointId={}", accreditationDtoInput.getUserId(), accreditationDtoInput.getSalePointId());
 
         try {
-            validRoleType.validateUserRole(httpServletRequest);
             log.debug("User role validated");
 
             UserDtoIdUsernameEmail userDto;
@@ -72,8 +69,7 @@ public class AccreditationServiceImpl implements AccreditationService {
 
             log.info("Accreditation created successfully: id={}", accreditationDtoOutput.getAccreditationId());
             return accreditationDtoOutput;
-        } catch (UserNotFoundException | SalePointNotFoundException | InvalidAuthorizationHeaderException |
-                 ForbiddenAccessException ex) {
+        } catch (UserNotFoundException | SalePointNotFoundException ex) {
             throw ex;
         }  catch (Exception ex) {
             log.error("Unexpected error during accreditation creation", ex);
@@ -83,20 +79,18 @@ public class AccreditationServiceImpl implements AccreditationService {
 
     @Override
     @Cacheable("accreditations")
-    public List<AccreditationDtoOutput> allAccreditations(HttpServletRequest httpServletRequest) {
+    public ArrayList<AccreditationDtoOutput> allAccreditations() {
         log.info("Fetching all accreditations");
 
         try {
-            validRoleType.validateAdminRole(httpServletRequest);
             log.debug("Admin role validated");
 
             List<AccreditationEntity> accreditationEntityList = accreditationRepository.findAll();
             List<AccreditationDtoOutput> accreditationDtoOutputList = accreditationMapper.toDtoOutputList(accreditationEntityList);
+            ArrayList<AccreditationDtoOutput> accreditationDtoOutputArrayList = new ArrayList<>(accreditationDtoOutputList);
 
             log.info("Fetched {} accreditations", accreditationDtoOutputList.size());
-            return accreditationDtoOutputList;
-        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
-            throw ex;
+            return accreditationDtoOutputArrayList;
         } catch (Exception ex) {
             log.error("Error fetching accreditations", ex);
             throw new InternalServerErrorException("Internal error fetching accreditations", ex);

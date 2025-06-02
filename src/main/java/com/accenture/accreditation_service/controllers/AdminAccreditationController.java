@@ -3,22 +3,21 @@ package com.accenture.accreditation_service.controllers;
 import com.accenture.accreditation_service.dtos.AccreditationDtoOutput;
 import com.accenture.accreditation_service.services.AccreditationService;
 import com.accenture.accreditation_service.utils.ApiResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.ArrayList;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/admin-accreditation")
+@RequestMapping("/api/accreditation/admin")
 public class AdminAccreditationController {
 
     private final AccreditationService accreditationService;
 
     @GetMapping("/all")
-    public ApiResponse<List<AccreditationDtoOutput>> getAllAccreditations(HttpServletRequest httpServletRequest) {
-        List<AccreditationDtoOutput> accreditationDtoOutputList = accreditationService.allAccreditations(httpServletRequest);
+    public ApiResponse<ArrayList<AccreditationDtoOutput>> getAllAccreditations() {
+        ArrayList<AccreditationDtoOutput> accreditationDtoOutputList = accreditationService.allAccreditations();
 
         return new ApiResponse<>(
                 "All orders: ",
