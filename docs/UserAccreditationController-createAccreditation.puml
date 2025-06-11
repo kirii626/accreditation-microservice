@@ -1,0 +1,76 @@
+@startuml
+skinparam dpi 300
+skinparam maxMessageSize 160
+
+actor Client
+participant "LoadBalancer" as LB
+participant "UserAccreditationController" as Controller
+participant "AccreditationService" as Service
+participant "UserClient" as UserClient
+participant "SalePointClient" as SPClient
+participant "AccreditationMapper" as Mapper
+participant "AccreditationRepository" as Repository
+participant "AccreditationEventPublisher" as Publisher
+participant "Redis Cache" as Cache
+database Database
+
+Client -> LB : POST /api/accreditation/user/create\n(AccreditationDtoInput)
+activate LB
+
+LB -> Controller : createAccreditation(AccreditationDtoInput)
+activate Controller
+
+Controller -> Service : createAccreditation(AccreditationDtoInput)
+activate Service
+
+Service -> Cache : evict("accreditations", allEntries=true)
+activate Cache
+Cache --> Service : void
+deactivate Cache
+
+Service -> SPClient : getSalePointDetails(spId) <<synchronous>>
+activate SPClient
+SPClient --> Service : SalePointDto
+deactivate SPClient
+
+Service -> UserClient : getUserDetails(userId) <<synchronous>>
+activate UserClient
+UserClient --> Service : UserDto
+deactivate UserClient
+
+Service -> Mapper : toEntity(accreditationDtoInput, salePointDto, userDto)
+activate Mapper
+Mapper --> Service : AccreditationEntity
+deactivate Mapper
+
+Service -> Repository : save(accreditationEntity)
+activate Repository
+
+Repository -> Database : INSERT INTO accreditations
+activate Database
+Database --> Repository : saved AccreditationEntity
+deactivate Database
+
+Repository --> Service : AccreditationEntity
+deactivate Repository
+
+Service -> Mapper : toDto(accreditationEntity)
+activate Mapper
+Mapper --> Service : AccreditationDtoOutput
+deactivate Mapper
+
+Service -> Publisher : sendAccreditationCreatedNotification(dto) <<asynchronous>>
+activate Publisher
+Publisher --> Service : void
+deactivate Publisher
+
+Service --> Controller : AccreditationDtoOutput
+deactivate Service
+
+Controller --> LB : ApiResponse<AccreditationDtoOutput>
+deactivate Controller
+
+LB --> Client : 201 Created with response body
+deactivate LB
+
+@enduml
